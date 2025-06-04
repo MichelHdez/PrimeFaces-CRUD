@@ -1,0 +1,16 @@
+/target/
+*.war
+
+# Archivos de IDE
+.idea/
+.nb-configuration.xml
+
+# Archivos de configuración local
+*.log
+.DS_Store
+
+# Dependencias de Maven
+.m2/
+
+# Directorios de Payara
+/payara6/
