@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure_10_0.dtd">
+<Configure id="webAppCtx" class="org.eclipse.jetty.maven.plugin.MavenWebAppContext">
+    <Set name="extraClasspath">
+        <SystemProperty name="maven.local.repository"/>/org/jboss/weld/servlet/weld-servlet-shaded/5.1.2.Final/weld-servlet-shaded-5.1.2.Final.jar
+    </Set>
+    <Set name="org.eclipse.jetty.webapp.WebInfIncludeJarPattern">.*weld-servlet-shaded.*\.jar$</Set>
+</Configure>

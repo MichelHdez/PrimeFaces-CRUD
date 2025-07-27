@@ -2,43 +2,47 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="jakarta.faces.html"
-      xmlns:p="primefaces"
-      xmlns:f="jakarta.faces.core">
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
 <h:head>
-    <title>Facelet Title</title>
-    <!-- Importa PrimeFlex para estilos responsivos -->
+    <title>CRUD</title>
     <h:outputStylesheet library="webjars" name="primeflex/3.3.1/primeflex.min.css"/>
-    <!-- Importa estilos personalizados -->
     <h:outputStylesheet library="css" name="layout.css"/>
+    <!-- Script para cerrar mensajes automáticamente -->
+    <h:outputScript>
+        function closeMessages() {
+            setTimeout(function() {
+                PF('messages').hide();
+                console.log("Mensajes cerrados");
+            }, 3000); // Cierra los mensajes después de 3 segundos
+        }
+    </h:outputScript>
 </h:head>
 <h:body>
-    <!-- Contenedor principal de la interfaz -->
     <div class="layout-wrapper">
         <div class="layout-content layout-content-inner">
             <div class="m-4 crud-demo">
-                <!-- Título de la aplicación -->
                 <div class="flex justify-content-center flex-wrap">
                     <h1 class="flex align-items-center justify-content-center font-bold m-2">
-                        CRUD CON JSF 4.0 6
+                        CRUD CON JSF 4.0
                     </h1>
                 </div>
 
                 <div class="grid">
                     <div class="col-12">
-                        <!-- Formulario principal para la tabla y mensajes -->
                         <h:form id="form">
-                            <!-- Muestra mensajes de notificación (éxito o error) -->
-                            <p:growl id="messages" showDetail="true"/>
-
-                            <!-- Barra de herramientas con botón "Nuevo" -->
+                            <p:messages id="messages" 
+                                        showDetail="true" 
+                                        autoUpdate="true" 
+                                        closable="true" 
+                                        widgetVar="messages"/>
                             <p:toolbar>
                                 <p:toolbarGroup>
-                                    <!-- Botón para abrir el diálogo de registro -->
                                     <p:commandButton
                                             value="Nuevo"
                                             icon="pi pi-plus"
-                                            actionListener="#{usuarioMB.nuevo()}"
+                                            action="#{usuarioMB.nuevo}"
                                             update=":dialogs:panel-content"
                                             oncomplete="PF('dlgUsuarioRegistro').show()"
                                             styleClass="ui-button-success"
@@ -48,7 +52,6 @@
                                 </p:toolbarGroup>
                             </p:toolbar>
 
-                            <!-- Tabla que muestra la lista de usuarios -->
                             <p:dataTable id="dt-usuarios"
                                          widgetVar="dtUsuarios"
                                          var="usuario"
@@ -58,30 +61,27 @@
                                          paginator="true"
                                          rows="10"
                                          paginatorPosition="bottom"
-                            >
-
-                                <!-- Encabezado de la tabla con filtro de búsqueda -->
+                                         lazy="false">
                                 <f:facet name="header">
                                     <div class="products-table-header">
                                         <span style="font-weight: bold">Usuarios</span>
-                                        <span class="filter-container ui-input-icon-left"> <i class="pi pi-search"></i>
-                                                <p:inputText id="globalFilter" onkeyup="PF('dtUsuarios').filter()"
-                                                             placeholder="Search"/>
-                                            </span>
+                                        <span class="filter-container ui-input-icon-left">
+                                            <i class="pi pi-search"></i>
+                                            <p:inputText id="globalFilter" onkeyup="PF('dtUsuarios').filter()"
+                                                         placeholder="Search"/>
+                                        </span>
                                     </div>
                                 </f:facet>
 
-                                <!-- Columna para el nombre del usuario -->
-                                <p:column headerText="Nombre"
-                                          filterBy="#{usuario.nombre}">
+                                <p:column headerText="ID" filterBy="#{usuario.idUsuario}">
+                                    <h:outputText value="#{usuario.idUsuario}"/>
+                                </p:column>
+                                <p:column headerText="Nombre" filterBy="#{usuario.nombre}">
                                     <h:outputText value="#{usuario.nombre}"/>
                                 </p:column>
-                                <!-- Columna para el nickname del usuario -->
-                                <p:column headerText="Nick"
-                                          filterBy="#{usuario.nickName}">
+                                <p:column headerText="Nick" filterBy="#{usuario.nickName}">
                                     <h:outputText value="#{usuario.nickName}"/>
                                 </p:column>
-                                <!-- Columna para acciones (editar/eliminar) -->
                                 <p:column ariaHeaderText="Acciones">
                                     <p:commandButton icon="pi pi-pencil"
                                                      update=":dialogs:panel-content"
@@ -89,7 +89,7 @@
                                                      styleClass="edit-button rounded-button ui-button-success"
                                                      process="@this">
                                         <f:setPropertyActionListener value="#{usuario}" target="#{usuarioMB.usuario}"/>
-                                        <p:resetInput target="dialogs:panel-content"/>
+                                        <p:resetInput target=":dialogs:panel-content"/>
                                     </p:commandButton>
                                     <p:commandButton class="ui-button-warning rounded-button"
                                                      icon="pi pi-trash"
@@ -99,12 +99,9 @@
                                     </p:commandButton>
                                 </p:column>
                             </p:dataTable>
-
                         </h:form>
 
-                        <!-- Formulario para diálogos (registro y confirmación) -->
                         <h:form id="dialogs">
-                            <!-- Diálogo para registrar o editar un usuario -->
                             <p:dialog
                                     header="Usuario"
                                     showEffect="fade"
@@ -118,14 +115,18 @@
                                             <p:inputText
                                                     id="nombre"
                                                     value="#{usuarioMB.usuario.nombre}"
-                                                    required="true"/>
+                                                    required="true"
+                                                    requiredMessage="El nombre es obligatorio"/>
+                                            <p:message for="nombre"/>
                                         </div>
                                         <div class="field">
                                             <p:outputLabel for="nickname">Nick Name</p:outputLabel>
                                             <p:inputText
                                                     id="nickname"
                                                     value="#{usuarioMB.usuario.nickName}"
-                                                    required="true"/>
+                                                    required="true"
+                                                    requiredMessage="El nickname es obligatorio"/>
+                                            <p:message for="nickname"/>
                                         </div>
                                     </p:outputPanel>
                                 </p:outputPanel>
@@ -133,8 +134,10 @@
                                 <f:facet name="footer">
                                     <p:commandButton value="Guardar"
                                                      icon="pi pi-check"
-                                                     actionListener="#{usuarioMB.guardar()}"
-                                                     process="panel-content @this"/>
+                                                     action="#{usuarioMB.guardar}"
+                                                     process="panel-content @this"
+                                                     update=":form:messages :form:dt-usuarios"
+                                                     oncomplete="if (!args.validationFailed) { PF('dlgUsuarioRegistro').hide(); } closeMessages();"/>
                                     <p:commandButton value="Cancelar"
                                                      icon="pi pi-times"
                                                      onclick="PF('dlgUsuarioRegistro').hide()"
@@ -143,30 +146,40 @@
                                 </f:facet>
                             </p:dialog>
 
-                            <!-- Diálogo de confirmación para eliminar -->
                             <p:confirmDialog widgetVar="dlgEliminarUsuario"
                                              showEffect="fade"
                                              width="300"
                                              message="Eliminar el usuario?"
                                              header="Confirmar"
                                              severity="warn">
-                                <!-- Botón para confirmar eliminación -->
-                                <p:commandButton value="Si
-                                                     " icon="pi pi-check"
-                                                 actionListener="#{usuarioMB.eliminar()}"
+                                <p:commandButton value="Sí"
+                                                 icon="pi pi-check"
+                                                 action="#{usuarioMB.eliminar}"
                                                  process="@this"
-                                                 oncomplete="PF('dlgEliminarUsuario').hide()"/>
-                                <!-- Botón para cancelar eliminación -->
-                                <p:commandButton value="No" type="button" styleClass="ui-button-secondary"
+                                                 update=":form:messages :form:dt-usuarios"
+                                                 oncomplete="PF('dlgEliminarUsuario').hide(); closeMessages();"/>
+                                <p:commandButton value="No"
+                                                 type="button"
+                                                 styleClass="ui-button-secondary"
                                                  icon="pi pi-times"
                                                  onclick="PF('dlgEliminarUsuario').hide()"/>
                             </p:confirmDialog>
                         </h:form>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
+    <h:outputScript>
+        // Cierra automáticamente los mensajes de éxito cuando se actualizan
+        $(function() {
+            $(document).on('pfAjaxComplete', function() {
+                setTimeout(function() {
+                    PF('messages').hide();
+                }, 3000);
+            });
+        });
+        console.log("DataTable cargada con #{usuarioMB.usuarios.size()} usuarios");
+    </h:outputScript>
 </h:body>
 </html>

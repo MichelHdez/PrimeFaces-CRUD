@@ -4,14 +4,12 @@
  */
 package com.std.ec.repository.persistence;
 
-import jakarta.ejb.Local;
 import java.util.List;
 
 /**
  *
  * @author WALTER ROSERO
  */
-@Local
 public interface Repository<T> {
 
     T save(T entity);

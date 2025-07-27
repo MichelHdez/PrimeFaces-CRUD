@@ -5,16 +5,20 @@
  */
 package com.std.ec.repository.persistence;
 
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.transaction.Transactional;
+
+import java.io.Serializable;
 import java.util.List;
 
 /**
  *
  * @author WALTER ROSERO
  */
-public abstract class CrudRepository<T> implements Repository<T> {
+public abstract class CrudRepository<T> implements Repository<T>, Serializable {
 
     private final Class<T> entityClass; // Clase de la entidad gestionada
 
@@ -22,62 +26,86 @@ public abstract class CrudRepository<T> implements Repository<T> {
         this.entityClass = entityClass;
     }
 
-    @PersistenceContext(unitName = "CRUD_PU") // Inyecta el EntityManager de la unidad de persistencia CRUD_PU
+    @Inject
     protected EntityManager em;
 
-    // Método abstracto que deben implementar las subclases para proporcionar el EntityManager
+    // Método abstracto que deben implementar las subclases para proporcionar el
+    // EntityManager
     protected abstract EntityManager getEntityManager();
 
-    /**
-     * Persiste una nueva entidad en la base de datos.
-     * @param entity Entidad a guardar.
-     * @return Entidad persistida.
-     */
     @Override
     public T save(T entity) {
-        getEntityManager().persist(entity);
-        return entity;
+        System.out.println("CrudRepository: Guardando entidad: " + entity);
+        EntityTransaction tx = getEntityManager().getTransaction();
+        try {
+            tx.begin();
+            getEntityManager().persist(entity);
+            getEntityManager().flush();
+            tx.commit();
+            System.out.println("Entidad guardada: " + entity);
+            return entity;
+        } catch (Exception e) {
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+            System.out.println("Error al guardar entidad: " + e.getMessage());
+            throw new RuntimeException("Error al guardar entidad", e);
+        }
     }
 
-    /**
-     * Actualiza una entidad existente en la base de datos.
-     * @param entity Entidad a actualizar.
-     * @return Entidad actualizada.
-     */
     @Override
     public T update(T entity) {
-        getEntityManager().merge(entity);
-        return entity;
+        System.out.println("CrudRepository: Actualizando entidad: " + entity);
+        EntityTransaction tx = getEntityManager().getTransaction();
+        try {
+            tx.begin();
+            T updated = getEntityManager().merge(entity);
+            getEntityManager().flush();
+            tx.commit();
+            System.out.println("Entidad actualizada: " + updated);
+            return updated;
+        } catch (Exception e) {
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+            System.out.println("Error al actualizar entidad: " + e.getMessage());
+            throw new RuntimeException("Error al actualizar entidad", e);
+        }
     }
 
-    /**
-     * Busca una entidad por su identificador.
-     * @param entityId Identificador de la entidad.
-     * @return Entidad encontrada o null si no existe.
-     */
     @Override
     public T findById(Object entityId) {
+        System.out.println("CrudRepository: Buscando entidad por ID: " + entityId);
         return getEntityManager().find(entityClass, entityId);
     }
 
-    /**
-     * Elimina una entidad de la base de datos.
-     * @param entity Entidad a eliminar.
-     */
     @Override
     public void delete(T entity) {
-        getEntityManager().remove(getEntityManager().merge(entity));
+        System.out.println("CrudRepository: Eliminando entidad: " + entity);
+        EntityTransaction tx = getEntityManager().getTransaction();
+        try {
+            tx.begin();
+            getEntityManager().remove(getEntityManager().merge(entity));
+            getEntityManager().flush();
+            tx.commit();
+            System.out.println("Entidad eliminada: " + entity);
+        } catch (Exception e) {
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+            System.out.println("Error al eliminar entidad: " + e.getMessage());
+            throw new RuntimeException("Error al eliminar entidad", e);
+        }
     }
 
-    /**
-     * Recupera todas las entidades de la clase especificada.
-     * @return Lista de todas las entidades.
-     */
     @Override
     public List<T> findAll() {
+        System.out.println("CrudRepository: Listando todas las entidades");
         CriteriaQuery cq = getEntityManager().getCriteriaBuilder().createQuery();
         cq.select(cq.from(entityClass));
-        return getEntityManager().createQuery(cq).getResultList();
+        List<T> result = getEntityManager().createQuery(cq).getResultList();
+        System.out.println("CrudRepository: Encontradas " + result.size() + " entidades");
+        return result;
     }
 
 }
